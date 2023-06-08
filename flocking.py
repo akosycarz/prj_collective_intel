@@ -41,20 +41,12 @@ class Bird(Agent):
         #update neighbours
         self.update_neighbours()
 
-        # #update neighbours
-        # neighbours_sum = Vector2(0,0)
-        
-        # for agent in self.in_proximity_accuracy():
-        #     neighbours_sum += agent[0].move()
-
         #wander if no neighbours
         if len(self.neighbours) == 0:
             self.velocity += self.wander()
             #.move and .pos
 
         else:
-    
-
             alignment = self.compute_alignment() * self.config.alignment_weight
             separation = self.compute_separation() * self.config.separation_weight
             cohesion = self.compute_cohesion() * self.config.cohesion_weight
