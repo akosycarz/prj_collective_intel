@@ -28,13 +28,16 @@ class Bird(Agent):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs) 
         self.neighbours = []  # initialize neighbours
-        self.velocity = Vector2(0, 0)  # initialize velocity
-        self.position = Vector2(0, 0)  # initialize position
+        #self.velocity = Vector2(0, 0)  # initialize velocity
+        #self.position = Vector2(0, 0)  # initialize position
 
     def change_position(self):
         # Pac-man-style teleport to the other end of the screen when trying to escape
         self.there_is_no_escape()
         #YOUR CODE HERE -----------
+
+        #update neighbours
+        self.update_neighbours()
         
         #wander if no neighbours
         if len(self.neighbours) == 0:
@@ -56,15 +59,26 @@ class Bird(Agent):
         
         #new position
         self.position += self.velocity * self.config.delta_time
-
-        
-
         #END CODE -----------------
+
+    def update_neighbours(self):
+
+        # Get the nearby birds using in_proximity_accuracy
+        self.neighbours = []
+        # For each bird in the simulation
+        for bird in self.simulation.agents:
+            # Don't count self as a neighbour
+            if bird == self:
+                continue
+            # If the bird is within radius R, add it to neighbours
+            if self.position.distance_to(bird.position) <= self.config.radius:
+                self.neighbours.append(bird)
 
     def wander(self):
         return Vector2(np.random.uniform(-1,1), np.random.uniform(-1,1))
 
     def compute_alignment(self):
+        # return type: Vector2
         return sum((bird.velocity for bird in self.neighbours), Vector2()) / len(self.neighbours) - self.velocity
 
     def compute_separation(self):
@@ -72,7 +86,8 @@ class Bird(Agent):
 
     def compute_cohesion(self):
         average_position = sum((bird.position for bird in self.neighbours), Vector2()) / len(self.neighbours)
-        return average_position - self.position
+        cohesion_force =  average_position - self.position
+        return cohesion_force - self.velocity
 
 
 class Selection(Enum):
