@@ -28,6 +28,19 @@ class Bird(Agent):
         # Pac-man-style teleport to the other end of the screen when trying to escape
         self.there_is_no_escape()
         #YOUR CODE HERE -----------
+        # Get the alignment, cohesion and separation vectors
+        alignment = self.alignment()
+        cohesion = self.cohesion()
+        separation = self.separation()
+
+        # Calculate the new velocity
+        new_velocity = self.velocity + alignment + cohesion + separation
+
+        # Limit the velocity to the maximum speed
+        new_velocity.scale_to_length(self.config.movement_speed)
+
+        # Update the velocity and position
+        self.velocity = new_velocity
 
         #END CODE -----------------
 
