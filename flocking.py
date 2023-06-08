@@ -28,8 +28,8 @@ class Bird(Agent):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs) 
         self.neighbours = []  # initialize neighbours
-        #self.velocity = Vector2(0, 0)  # initialize velocity
-        #self.position = Vector2(0, 0)  # initialize position
+        self.velocity = Vector2(0, 0)  # initialize velocity
+        self.position = Vector2(0, 0)  # initialize position
 
     def change_position(self):
         # Pac-man-style teleport to the other end of the screen when trying to escape
@@ -38,7 +38,13 @@ class Bird(Agent):
 
         #update neighbours
         self.update_neighbours()
+
+        # #update neighbours
+        # neighbours_sum = Vector2(0,0)
         
+        # for agent in self.in_proximity_accuracy():
+        #     neighbours_sum += agent[0].move()
+
         #wander if no neighbours
         if len(self.neighbours) == 0:
             self.velocity += self.wander()
@@ -59,27 +65,22 @@ class Bird(Agent):
         
         #new position
         self.position += self.velocity * self.config.delta_time
-        #END CODE -----------------
+
 
     def update_neighbours(self):
-
-        # Get the nearby birds using in_proximity_accuracy
         self.neighbours = []
-        # For each bird in the simulation
-        for bird in self.simulation.agents:
-            # Don't count self as a neighbour
-            if bird == self:
-                continue
-            # If the bird is within radius R, add it to neighbours
-            if self.position.distance_to(bird.position) <= self.config.radius:
-                self.neighbours.append(bird)
+        for agent in self.in_proximity_accuracy():
+            #add neighbours if not itself
+            if agent[0] != self:
+                self.neighbours.append(agent[0])
+
 
     def wander(self):
         return Vector2(np.random.uniform(-1,1), np.random.uniform(-1,1))
 
     def compute_alignment(self):
         # return type: Vector2
-        return sum((bird.velocity for bird in self.neighbours), Vector2()) / len(self.neighbours) - self.velocity
+        return sum((bird.velocity for bird in self.neighbours), Vector2((0,0))) / len(self.neighbours) - self.velocity
 
     def compute_separation(self):
         return sum((self.position - bird.position for bird in self.neighbours), Vector2()) / len(self.neighbours)
@@ -110,6 +111,7 @@ class FlockingLive(Simulation):
 
     def before_update(self):
         super().before_update()
+
 
         for event in pg.event.get():
             if event.type == pg.KEYDOWN:
