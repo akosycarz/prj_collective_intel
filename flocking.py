@@ -30,6 +30,7 @@ class Bird(Agent):
         self.neighbours = []  # initialize neighbours
         self.velocity = Vector2(0, 0)  # initialize velocity
         self.position = Vector2(0, 0)  # initialize position
+  
 
     def change_position(self):
         # Pac-man-style teleport to the other end of the screen when trying to escape
@@ -48,23 +49,31 @@ class Bird(Agent):
         #wander if no neighbours
         if len(self.neighbours) == 0:
             self.velocity += self.wander()
+            #.move and .pos
 
         else:
+    
+
             alignment = self.compute_alignment() * self.config.alignment_weight
             separation = self.compute_separation() * self.config.separation_weight
             cohesion = self.compute_cohesion() * self.config.cohesion_weight
 
+            #calculating the total force
+            f_total = ((alignment + separation + cohesion) / self.config.mass)*self.config.delta_time
 
-            f_total = (alignment + separation + cohesion) / self.config.mass
-
-            self.velocity += f_total 
+            # Adding force to movement
+            self.move += f_total
 
             self.velocity += f_total
             if self.velocity.length() > self.config.movement_speed:
                 self.velocity = (self.velocity / self.velocity.length()) * self.config.movement_speed
-        
+        # Update position, current position plus movement position value
+        self.pos = self.pos + self.move 
         #new position
-        self.position += self.velocity * self.config.delta_time
+        # self.position += self.velocity * self.config.delta_time
+
+        # Update position, current position plus movement position value
+        self.pos = self.pos + self.move 
 
 
     def update_neighbours(self):
@@ -89,6 +98,7 @@ class Bird(Agent):
         average_position = sum((bird.position for bird in self.neighbours), Vector2()) / len(self.neighbours)
         cohesion_force =  average_position - self.position
         return cohesion_force - self.velocity
+    
 
 
 class Selection(Enum):
@@ -131,14 +141,28 @@ class FlockingLive(Simulation):
 
 
 (
-    FlockingLive(
-        FlockingConfig(
-            image_rotation=True,
+    # FlockingLive(
+    #     FlockingConfig(
+    #         image_rotation=True,
+    #         movement_speed=2,
+    #         radius=50,
+    #         seed=1,
+    #     )
+    # )
+    
+    
+    # .batch_spawn_agents(50, Bird, images=["images/bird.png"])
+
+    Simulation(
+        FlockingConfig(image_rotation=True,
             movement_speed=2,
             radius=50,
-            seed=1,
-        )
+            seed=1)
+
     )
     .batch_spawn_agents(50, Bird, images=["images/bird.png"])
+
+    
     .run()
+    
 )
