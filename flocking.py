@@ -30,6 +30,7 @@ class Bird(Agent):
         self.neighbours = []  # initialize neighbours
         self.velocity = Vector2(0, 0)  # initialize velocity
         self.position = Vector2(0, 0)  # initialize position
+        self.max_velocity = 5.0 #set maximal velocity
   
 
     def change_position(self):
@@ -69,8 +70,10 @@ class Bird(Agent):
                 self.velocity = (self.velocity / self.velocity.length()) * self.config.movement_speed
         # Update position, current position plus movement position value
         self.pos = self.pos + self.move 
-        #new position
-        # self.position += self.velocity * self.config.delta_time
+        # Limiting to maximum velocity
+        if self.move.length() > self.max_velocity:  # Using length() to get the velocity and compare to max_velocity
+            self.move.normalize_ip()  # Normalizing move vector in-place to get vector length 1
+            self.move.scale_to_length(self.max_velocity) # Scales vector to max_velocity value
 
         # Update position, current position plus movement position value
         self.pos = self.pos + self.move 
