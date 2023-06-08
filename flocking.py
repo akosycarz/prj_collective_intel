@@ -4,6 +4,7 @@ import pygame as pg
 from pygame.math import Vector2
 from vi import Agent, Simulation
 from vi.config import Config, dataclass, deserialize
+import numpy as np
 
 
 @deserialize
@@ -24,25 +25,54 @@ class FlockingConfig(Config):
 class Bird(Agent):
     config: FlockingConfig
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs) 
+        self.neighbours = []  # initialize neighbours
+        self.velocity = Vector2(0, 0)  # initialize velocity
+        self.position = Vector2(0, 0)  # initialize position
+
     def change_position(self):
         # Pac-man-style teleport to the other end of the screen when trying to escape
         self.there_is_no_escape()
         #YOUR CODE HERE -----------
-        # Get the alignment, cohesion and separation vectors
-        alignment = self.alignment()
-        cohesion = self.cohesion()
-        separation = self.separation()
+        
+        #wander if no neighbours
+        if len(self.neighbours) == 0:
+            self.velocity += self.wander()
 
-        # Calculate the new velocity
-        new_velocity = self.velocity + alignment + cohesion + separation
+        else:
+            alignment = self.compute_alignment() * self.config.alignment_weight
+            separation = self.compute_separation() * self.config.separation_weight
+            cohesion = self.compute_cohesion() * self.config.cohesion_weight
 
-        # Limit the velocity to the maximum speed
-        new_velocity.scale_to_length(self.config.movement_speed)
 
-        # Update the velocity and position
-        self.velocity = new_velocity
+            f_total = (alignment + separation + cohesion) / self.config.mass
+
+            self.velocity += f_total 
+
+            self.velocity += f_total
+            if self.velocity.length() > self.config.movement_speed:
+                self.velocity = (self.velocity / self.velocity.length()) * self.config.movement_speed
+        
+        #new position
+        self.position += self.velocity * self.config.delta_time
+
+        
 
         #END CODE -----------------
+
+    def wander(self):
+        return Vector2(np.random.uniform(-1,1), np.random.uniform(-1,1))
+
+    def compute_alignment(self):
+        return sum((bird.velocity for bird in self.neighbours), Vector2()) / len(self.neighbours) - self.velocity
+
+    def compute_separation(self):
+        return sum((self.position - bird.position for bird in self.neighbours), Vector2()) / len(self.neighbours)
+
+    def compute_cohesion(self):
+        average_position = sum((bird.position for bird in self.neighbours), Vector2()) / len(self.neighbours)
+        return average_position - self.position
 
 
 class Selection(Enum):
@@ -87,7 +117,7 @@ class FlockingLive(Simulation):
     FlockingLive(
         FlockingConfig(
             image_rotation=True,
-            movement_speed=1,
+            movement_speed=2,
             radius=50,
             seed=1,
         )
